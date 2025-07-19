@@ -51,6 +51,7 @@ def get_image_paths():
         'malignant': sorted(glob(os.path.join(BASE_DIRS['malignant'], '*')))
     }
     return paths
+# test
 
 # Sample balanced dataset safely
 def sample_dataset(image_paths, total_size):
