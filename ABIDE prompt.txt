@@ -1,0 +1,11 @@
+Okay, now I have combined the original and augmented images into the same respective folders, called 'benign' and 'malignant'. Each of these two folders contains images from that class, with the original 19, and the augmented 209 images for a total of 228 images in each. The overall dataset therefore has 456 images. Next, I need to run the following experiment.
+
+I need to use the pre-trained EfficientNetB0 (pre-trained on ImageNet) architecture to act as a feature extractor and cluster images into 4 clusters. Then, I need to use grouped cross-validation within each cluster to evaluate the performance of the EfficientNetB0 CNN classifier. The performance metrics we need are the accuracy, precision, recall, f1 score, AUC, as well as the inter-cluster distances (as measured by the Euclidean distance between PCA-projected centroids) and finally intra-cluster distance. The performance should be written to .csv format.
+
+In addition, we need to run this experiment for a variety of overall data set sizes. We can start with the full dataset, of 456 images, then re-run it for half the dataset size (228) and then for 100, and finally for 50. Each time, the dataset should be balanced between benign and malignant images.
+
+To summarize this in steps:
+1. For each overall dataset size (456, 228, 100, and finally 50) sample images from their directories to be sure we have an even split between benign and malignant images.
+2. For the given dataset size in step 1 above, run the feature extractor to cluster these images into 4 clusters. So, we should have 4 clusters per dataset size.
+3. Then, use the same CNN model used to extract features, allow it to classify and evaluate it using grouped cross-validation within each cluster to ensure no data leakage (use the fact that each image is labelled according to the patient it belongs to by using its filename 'patient_id' format). 
+3. Write the above mentioned performance metrics, as well as cluster size, intra-cluster and inter-cluster distances, to .csv format as a single row.

@@ -1,0 +1,64 @@
+2025-07-11 15:04:02.148379: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: SSE SSE2 SSE3 SSE4.1 SSE4.2 AVX AVX2 AVX512F AVX512_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+C:\Users\john_\anaconda3\Lib\site-packages\sklearn\cluster\_kmeans.py:1412: FutureWarning: The default value of `n_init` will change from 10 to 'auto' in 1.4. Set the value of `n_init` explicitly to suppress the warning
+  super()._check_params_vs_input(X, default_n_init=10)
+TensorFlow version: 2.13.0
+GPUs detected: No GPU found
+Available images - Benign: 228, Malignant: 228
+
+Running experiment with dataset size: 456
+Sampling 228 images per class (benign/malignant).
+Extracting features...
+Clustering...
+Traceback (most recent call last):
+  File "C:\Users\john_\OneDrive\Desktop\Data_Heterogeneity_ABIDE\ABIDE_Using_Group_Cross_Validation_with_feature_extraction.py", line 180, in run_experiment
+    cluster_labels, inter_matrix, intra_dists = cluster_features(features)
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\OneDrive\Desktop\Data_Heterogeneity_ABIDE\ABIDE_Using_Group_Cross_Validation_with_feature_extraction.py", line 105, in cluster_features
+    clusters = kmeans.fit_predict(reduced)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\sklearn\cluster\_kmeans.py", line 1068, in fit_predict
+    return self.fit(X, sample_weight=sample_weight).labels_
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\sklearn\base.py", line 1151, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\sklearn\cluster\_kmeans.py", line 1509, in fit
+    self._check_mkl_vcomp(X, X.shape[0])
+  File "C:\Users\john_\anaconda3\Lib\site-packages\sklearn\cluster\_kmeans.py", line 927, in _check_mkl_vcomp
+    modules = threadpool_info()
+              ^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\sklearn\utils\fixes.py", line 83, in threadpool_info
+    return threadpoolctl.threadpool_info()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\threadpoolctl.py", line 124, in threadpool_info
+    return _ThreadpoolInfo(user_api=_ALL_USER_APIS).todicts()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\threadpoolctl.py", line 340, in __init__
+    self._load_modules()
+  File "C:\Users\john_\anaconda3\Lib\site-packages\threadpoolctl.py", line 373, in _load_modules
+    self._find_modules_with_enum_process_module_ex()
+  File "C:\Users\john_\anaconda3\Lib\site-packages\threadpoolctl.py", line 485, in _find_modules_with_enum_process_module_ex
+    self._make_module_from_path(filepath)
+  File "C:\Users\john_\anaconda3\Lib\site-packages\threadpoolctl.py", line 515, in _make_module_from_path
+    module = module_class(filepath, prefix, user_api, internal_api)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\threadpoolctl.py", line 606, in __init__
+    self.version = self.get_version()
+                   ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\john_\anaconda3\Lib\site-packages\threadpoolctl.py", line 646, in get_version
+    config = get_config().split()
+             ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'split'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\john_\OneDrive\Desktop\Data_Heterogeneity_ABIDE\ABIDE_Using_Group_Cross_Validation_with_feature_extraction.py", line 224, in <module>
+    run_experiment()
+  File "C:\Users\john_\OneDrive\Desktop\Data_Heterogeneity_ABIDE\ABIDE_Using_Group_Cross_Validation_with_feature_extraction.py", line 213, in run_experiment
+    print(f"\u274c Error during experiment size {size}: {e}")
+  File "C:\Users\john_\anaconda3\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u274c' in position 0: character maps to <undefined>
