@@ -33,7 +33,7 @@ DATASET_SIZES = [456, 228, 100, 50]
 CLUSTERS = 4
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 8
-OUTPUT_CSV = './ABIDE - Cross Validation Data/experiment_results.csv'
+OUTPUT_CSV = './ABIDE - Cross Validation Data/extracted_features_experiment_results.csv'
 BASE_DIRS = {
     'benign': './ABIDE imaging data/benign/',
     'malignant': './ABIDE imaging data/malignant/'
