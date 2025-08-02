@@ -30,7 +30,7 @@ DATASET_SIZES = [456, 228, 100, 50]
 CLUSTERS = 4
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 8
-OUTPUT_CSV = './ABIDE - Cross Validation Data/random_cluster_experiment_results.csv'
+OUTPUT_CSV_FILENAME = './ABIDE - Cross Validation Data/random_cluster_experiment_results'
 BASE_DIRS = {
     'benign': './ABIDE imaging data/benign/',
     'malignant': './ABIDE imaging data/malignant/'
@@ -125,30 +125,34 @@ def build_classifier():
     model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
     return model
 
-# Evaluate using grouped cross-validation
+# Evaluate using grouped cross-validation and return per-sample info
 def evaluate(images, labels, groups):
     kf = GroupKFold(n_splits=4)
-    y_true, y_pred, y_prob = [], [], []
+    y_true_all, y_pred_all, y_prob_all, group_all = [], [], [], []
 
     for train_idx, test_idx in kf.split(images, labels, groups):
         model = build_classifier()
         model.fit(images[train_idx], labels[train_idx], epochs=5, batch_size=32, verbose=0)
         probs = model.predict(images[test_idx]).flatten()
         preds = (probs > 0.5).astype(int)
-        y_true.extend(labels[test_idx])
-        y_pred.extend(preds)
-        y_prob.extend(probs)
 
-    return {
-        'accuracy': accuracy_score(y_true, y_pred),
-        'precision': precision_score(y_true, y_pred),
-        'recall': recall_score(y_true, y_pred),
-        'f1': f1_score(y_true, y_pred),
-        'auc': roc_auc_score(y_true, y_prob)
+        y_true_all.extend(labels[test_idx])
+        y_pred_all.extend(preds)
+        y_prob_all.extend(probs)
+        group_all.extend(groups[test_idx])
+
+    metrics = {
+        'accuracy': accuracy_score(y_true_all, y_pred_all),
+        'precision': precision_score(y_true_all, y_pred_all),
+        'recall': recall_score(y_true_all, y_pred_all),
+        'f1': f1_score(y_true_all, y_pred_all),
+        'auc': roc_auc_score(y_true_all, y_prob_all)
     }
 
+    return metrics, np.array(y_true_all), np.array(y_pred_all), np.array(y_prob_all)
+
 # Main experiment loop
-def run_experiment():
+def run_experiment(iteration):
     all_paths = get_image_paths()
     print(f"Available images - Benign: {len(all_paths['benign'])}, Malignant: {len(all_paths['malignant'])}")
     results = []
@@ -163,25 +167,46 @@ def run_experiment():
             cluster_labels, inter_matrix, intra_dists = cluster_features(len(images))
 
             print("Evaluating model...")
-            metrics = evaluate(images, labels, patients)
+            metrics, y_true, y_pred, y_prob = evaluate(images, labels, patients)
 
             for cluster_id in range(CLUSTERS):
                 cluster_mask = (cluster_labels == cluster_id)
-                cluster_size = np.sum(cluster_mask)
 
-                row = {
-                    'dataset_size': size,
-                    'cluster_label': cluster_id,
-                    'cluster_size': int(cluster_size),
-                    'accuracy': metrics['accuracy'],
-                    'precision': metrics['precision'],
-                    'recall': metrics['recall'],
-                    'f1': metrics['f1'],
-                    'auc': metrics['auc'],
-                    'intra_cluster_dist': intra_dists[cluster_id]
-                }
+                if np.sum(cluster_mask) == 0:
+                    print(f"Skipping empty cluster {cluster_id}")
+                    continue
 
-                # Store inter-cluster distances
+                true_cluster = y_true[cluster_mask]
+                pred_cluster = y_pred[cluster_mask]
+                prob_cluster = y_prob[cluster_mask]
+
+                try:
+                    row = {
+                        'dataset_size': size,
+                        'cluster_label': cluster_id,
+                        'cluster_size': int(np.sum(cluster_mask)),
+                        'accuracy': accuracy_score(true_cluster, pred_cluster),
+                        'precision': precision_score(true_cluster, pred_cluster),
+                        'recall': recall_score(true_cluster, pred_cluster),
+                        'f1': f1_score(true_cluster, pred_cluster),
+                        'auc': roc_auc_score(true_cluster, prob_cluster),
+                        'intra_cluster_dist': intra_dists[cluster_id]
+                    }
+                except ValueError:
+                    # In case only one class is present in this cluster
+                    row = {
+                        'dataset_size': size,
+                        'cluster_label': cluster_id,
+                        'cluster_size': int(np.sum(cluster_mask)),
+                        'accuracy': None,
+                        'precision': None,
+                        'recall': None,
+                        'f1': None,
+                        'auc': None,
+                        'intra_cluster_dist': intra_dists[cluster_id]
+                    }
+
+                # Add inter-cluster distances
                 for i in range(CLUSTERS):
                     for j in range(i + 1, CLUSTERS):
                         row[f'inter_cluster_{i}_{j}'] = inter_matrix[i, j]
@@ -198,10 +223,11 @@ def run_experiment():
     # Save results
     if results:
         df = pd.DataFrame(results)
-        df.to_csv(OUTPUT_CSV, index=False)
-        print(f"\n🎉 All results written to: {OUTPUT_CSV}")
+        df.to_csv(f"{OUTPUT_CSV_FILENAME}_{iteration}.csv", index=False)
+        print(f"\n🎉 All results written to: {OUTPUT_CSV_FILENAME}_{iteration}.csv")
     else:
         print("⚠️ No results to write.")
 
 if __name__ == "__main__":
-    run_experiment()
+    for i in range(5):
+        run_experiment(i)

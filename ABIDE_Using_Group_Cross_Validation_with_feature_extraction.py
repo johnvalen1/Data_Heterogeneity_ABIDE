@@ -33,7 +33,7 @@ DATASET_SIZES = [456, 228, 100, 50]
 CLUSTERS = 4
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 8
-OUTPUT_CSV = './ABIDE - Cross Validation Data/extracted_features_experiment_results.csv'
+OUTPUT_CSV_FILENAME = './ABIDE - Cross Validation Data/extracted_features_experiment_results'
 BASE_DIRS = {
     'benign': './ABIDE imaging data/benign/',
     'malignant': './ABIDE imaging data/malignant/'
@@ -163,7 +163,7 @@ def evaluate(images, labels, groups):
     }
 
 # Main experiment loop
-def run_experiment():
+def run_experiment(iteration):
     all_paths = get_image_paths()
     print(f"Available images - Benign: {len(all_paths['benign'])}, Malignant: {len(all_paths['malignant'])}")
     results = []
@@ -180,17 +180,23 @@ def run_experiment():
             print("Clustering...")
             cluster_labels, inter_matrix, intra_dists = cluster_features(features)
 
-            print("Evaluating model...")
-            metrics = evaluate(images, labels, patients)
-
             for cluster_id in range(CLUSTERS):
+                print(f"→ Evaluating cluster {cluster_id}")
                 cluster_mask = (cluster_labels == cluster_id)
-                cluster_size = np.sum(cluster_mask)
+                if np.sum(cluster_mask) < 4:
+                    print(f"⚠️ Skipping cluster {cluster_id}: not enough samples for cross-validation.")
+                    continue
+
+                cluster_images = images[cluster_mask]
+                cluster_labels_binary = labels[cluster_mask]
+                cluster_patients = patients[cluster_mask]
+
+                metrics = evaluate(cluster_images, cluster_labels_binary, cluster_patients)
 
                 row = {
                     'dataset_size': size,
                     'cluster_label': cluster_id,
-                    'cluster_size': int(cluster_size),
+                    'cluster_size': int(np.sum(cluster_mask)),
                     'accuracy': metrics['accuracy'],
                     'precision': metrics['precision'],
                     'recall': metrics['recall'],
@@ -199,7 +205,7 @@ def run_experiment():
                     'intra_cluster_dist': intra_dists[cluster_id]
                 }
 
-                # Store inter-cluster distances
+                # Store inter-cluster distances (same for all rows)
                 for i in range(CLUSTERS):
                     for j in range(i + 1, CLUSTERS):
                         row[f'inter_cluster_{i}_{j}'] = inter_matrix[i, j]
@@ -216,10 +222,12 @@ def run_experiment():
     # Save results
     if results:
         df = pd.DataFrame(results)
-        df.to_csv(OUTPUT_CSV, index=False)
-        print(f"\n🎉 All results written to: {OUTPUT_CSV}")
+        df.to_csv(f"{OUTPUT_CSV_FILENAME}_{iteration}.csv", index=False)
+        print(f"\n🎉 All results written to: {OUTPUT_CSV_FILENAME}_{iteration}.csv")
     else:
         print("⚠️ No results to write.")
 
+
 if __name__ == "__main__":
-    run_experiment()
+    for i in range(5):
+        run_experiment(i)
